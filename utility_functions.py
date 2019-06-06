@@ -77,6 +77,8 @@ def handle_nas(df_impute, method='impute_mean'):
     na_col = list(df.isnull().sum().sort_values(ascending=True)[np.sum(df.isnull())>0].index)
     num_cols = list(df.columns[(df.dtypes == 'float64') | (df.dtypes == 'int64')])
     str_cols = list(set(df.columns)^set(num_cols))
+    
+    print('Imputing data for variables: %s'%na_col)
 
     if method == 'drop':
         df=df.dropna()
