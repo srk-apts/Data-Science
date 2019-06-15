@@ -97,7 +97,7 @@ def handle_nas(df_impute, method='impute_mean'):
     print('Imputing data for variables: %s \n Total number of features for imputing: %s \n Total Columns: %s'
           %(na_cols, len(na_cols), len(list(df.columns))))
     
-    # if all cols are na's impute, one with least na's by mean
+    # if all cols have na's impute, one with least na's by mean
     if len(predictors) == 0:
         df = impute_mean(df=df, na_cols=na_cols[0])
         na_cols = list(df.isnull().sum().sort_values(ascending=True)[np.sum(df.isnull())>0].index)
@@ -105,8 +105,10 @@ def handle_nas(df_impute, method='impute_mean'):
 
     if method == 'impute_mean':
         df = impute_mean(df=df, na_cols=na_cols)
-    elif method == 'impute_predict':        
+    elif method == 'impute_predict':  
+        
         for i in na_cols:
+            t0 = time.time()
             print('loop started for %s...'%i)
             X = df[predictors]
             X_scaled = scale_encode(X, X)
@@ -115,15 +117,18 @@ def handle_nas(df_impute, method='impute_mean'):
             X_pred = X_scaled.loc[df[i].isnull()]
             print('   scaling done...')
             if i in num_cols:
-                knn = KNeighborsRegressor(30).fit(X_train, y)
-                print('   fit model...')
-                df.loc[df[i].isnull(), i] = knn.predict(X_pred)
+                model = KNeighborsRegressor().fit(X_train, y)
+                print('   model fit...')
+                df.loc[df[i].isnull(), i] = model.predict(X_pred)
             elif i in str_cols:
-                knn = KNeighborsClassifier(30).fit(X_train, y)
-                print('   fit model...')
-                df.loc[df[i].isnull(), i] = knn.predict(X_pred)
-                predictors.append(i)
+                model = KNeighborsClassifier().fit(X_train, y)
+                print('   model fit...')
+                df.loc[df[i].isnull(), i] = model.predict(X_pred)
+            predictors.append(i)
             print('   %s done...'%i)
+            t1 = time.time()
+            T = t1-t0
+            print('   Time taken: %s'%T)            
             
     return(df)
 
